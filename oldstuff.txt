@@ -1,0 +1,720 @@
+'''with pdfplumber.open("physics.pdf") as pdf:
+        text = ''
+        pages = pdf.pages
+        for a in range(len(pages)):
+            text = pages[a].extract_text(x_tolerance=1, layout=False)
+            if f'{question}. ' in text:
+                bbox = (50, 50, 562, 692)
+                page = pages[a].crop(bbox).to_image(resolution=250).original
+                with io.BytesIO() as image_binary:
+                    page.save(image_binary, 'PNG')
+                    image_binary.seek(0)
+                    await ctx.send(file=discord.File(fp=image_binary, filename='image.png'))
+                    await ctx.send(f'```enter your answer for question {question} please:```')
+                    break
+                
+        def check(m):
+            return m.author.id == ctx.message.author.id and m.channel == ctx.message.channel
+
+        choice = await bot.wait_for('message', check=check)
+        repeated = 0
+
+        for a in range(29, 33):
+            if f'{question}.' in pages[a].extract_text(x_tolerance=1, layout=False):
+                l = pages[a].chars #l is list of all characters on page
+                for b in l: #for characters in l
+                    if b['text']+l[repeated+1]['text'] == f'{question}.' or b['text']+l[repeated+1]['text']+l[repeated+2]['text'] == f'{question}.':
+                        start = b  
+
+                    if math.floor(b['x0']) == 521:
+                        correct = b['text']
+
+                    if b['text']+l[repeated+1]['text'] == f'{str(int(question)+1)}.' or b['text']+l[repeated+1]['text']+l[repeated+2]['text'] == f'{str(int(question)+1)}.':
+                        end = b
+                        break
+
+                    if repeated >= len(l)-3:
+                        await ctx.send('bad')
+                        if pages[a+1].chars[repeated]['text']+pages[a+1].chars[repeated+1]['text'] == f'{str(int(question)+1)}.':
+                            end = l[repeated-1]
+                            break
+                        await ctx.send('not found')
+                        return
+
+                    repeated += 1
+
+                bbox = (start['x0']-10, start['top']-5, start['x1']+460, end['top']-5)
+                answer = pages[a].crop(bbox).to_image(resolution=250).original
+
+        if choice.lower() == correct:
+            await ctx.send('youre right, heres the answer and 5 points...')
+            userid = str(ctx.author.id)
+            with open('points.txt', "r+") as file:
+                answers = ast.literal_eval(file.read())
+                if userid not in repr(answers):
+                    answers[userid] = 0
+                answers[userid] += 5
+                file.seek(0)
+                file.write(str(answers))
+                file.truncate()
+
+            with io.BytesIO() as image_binary:
+                answer.save(image_binary, 'PNG')
+                image_binary.seek(0)
+                await ctx.send(file=discord.File(fp=image_binary, filename='image.png'))
+            await ctx.send('heres the next question...')
+
+        else:
+            await ctx.send('wrong msg, heres the correct answer...')
+            with io.BytesIO() as image_binary:
+                answer.save(image_binary, 'PNG')
+                image_binary.seek(0)
+                await ctx.send(file=discord.File(fp=image_binary, filename='image.png'))'''
+
+
+@bot.command()
+@commands.cooldown(1, 5, commands.BucketType.user)
+async def throw(ctx, amount_of_throws=None):
+    message = ctx.message
+    datafile = f"C:/Users/2happ/desktop/bot/gamedata/{message.author.id}.txt"
+    try:
+        with open(datafile, "r") as checkuser:
+                checkuser = checkuser.readlines()
+                levelups = [25, 100, 300, 600, 1000, 1500, 2100, 2800, 3600, 5000]
+                maxamounts = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+                if amount_of_throws == 'all':
+                    checkuser[2]=str(int(checkuser[1]) + int(checkuser[2]))
+                    old = checkuser[1]
+                    checkuser[1]=str("0\n")
+                    with open(datafile, "w") as removing:
+                        removing.writelines(checkuser)
+                        allembed = discord.Embed(title=ballgame, description= f"you threw all your balls ({int(old)})", color=maincolor)
+                        allembed.add_field(name="balls thrown: ", value=checkuser[2], inline=False)
+                        await ctx.send(embed=allembed)
+                    if int(checkuser[2]) >= levelups[int(checkuser[0])]:
+                        if int(checkuser[0]) < 10:
+                            checkuser[0] = f"{str(int(checkuser[0])+1)}\n"
+                            with open(datafile, "w") as levelup:
+                                levelup.writelines(checkuser)    
+                                embedlevelup = discord.Embed(title=ballgame, description = f"congrats! you reached **{levelups[int(checkuser[0])-1]}** balls thrown, and you're now level **{checkuser[0]}**! You now need **{levelups[int(checkuser[0])]}** balls thrown to get to the next level! The max amount of balls you can collect each time has been increased as well. ({maxamounts[int(checkuser[0])-1]} -> {maxamounts[int(checkuser[0])]})", color=0x38FF9A)
+                                await ctx.send(embed=embedlevelup)
+                                
+                        else:
+                            embedleveluppog = discord.Embed(title=ballgame, description = f"congrats! you reached **{levelups[int(checkuser[0])-1]}** balls thrown, and you're now level **{checkuser[0]}**! You have reached the max level, and you can now consider yourself a 'ball throwing PRO!'", color=0x38FF9A)
+                            await ctx.send(embed=embedleveluppog)
+
+
+                elif type(amount_of_throws) is not None:
+                    try:
+                        trying = int(amount_of_throws)
+                        if int(amount_of_throws) > 0 and int(amount_of_throws) <= int(checkuser[1]):
+                            checkuser[2] = str(int(amount_of_throws)+int(checkuser[2]))
+                            checkuser[1] = str(f"{int(checkuser[1])-int(amount_of_throws)}\n")
+                            with open(datafile, "w") as thrown:
+                                thrown.writelines(checkuser)
+                                embedVar = discord.Embed(title=ballgame, description= f"you threw {amount_of_throws} balls", color=maincolor)
+                                embedVar.add_field(name="balls thrown: ", value=checkuser[2], inline=False)
+                                await ctx.send(embed=embedVar)
+                            if int(checkuser[2]) >= levelups[int(checkuser[0])]:
+                                if int(checkuser[0]) < 10:
+                                    checkuser[0] = str(int(checkuser[0])+1)
+                                    with open(datafile, "w") as levelup:
+                                        levelup.writelines(checkuser)
+                                        embedlevelup = discord.Embed(title=ballgame, description = f"congrats! you reached **{levelups[int(checkuser[0])-1]}** balls thrown, and you're now level **{checkuser[0]}**! You now need **{levelups[int(checkuser[0])]}** balls thrown to get to the next level! The max amount of balls you can collect each time has been increased as well. ({maxamounts[int(checkuser[0])-1]} -> {maxamounts[int(checkuser[0])]})", color=0x38FF9A)
+                                        await ctx.send(embed=embedlevelup)
+                                else:
+                                    embedleveluppog = discord.Embed(title=ballgame, description = f"congrats! you reached **{levelups[int(checkuser[0])-1]}** balls thrown, and you're now level **{checkuser[0]}**! You have reached the max level, and you can now consider yourself a 'ball throwing PRO!'", color=0x38FF9A)
+                                    await ctx.send(embed=embedleveluppog)
+
+                        elif int(amount_of_throws) == 0:
+                            embedmuffinhead = discord.Embed(title=ballgame, description ="why are you trying to throw 0 balls, you muffinhead", color=maincolor)
+                            await ctx.send(embed=embedmuffinhead)
+                        elif int(amount_of_throws) < 0:
+                            embednegative = discord.Embed(title=ballgame, description= "why are you trying to throw a negative amount of balls, you muffinhead", color=maincolor)
+                            await ctx.send(embed=embednegative)
+                        else:
+                            embedcheat = discord.Embed(title=ballgame, description= "you don't have that many balls to throw; don't cheat :(", color=maincolor)
+                            await ctx.send(embed=embedcheat)
+
+                    except:
+                        if type(amount_of_throws) == str:
+                            embedthrow = discord.Embed(title=ballgame, description = f"you threw {amount_of_throws}, now try specifying an amount of balls to throw please", color=maincolor)
+                            await ctx.send(embed=embedthrow)
+                        else:
+                            errorembed = discord.Embed(title=ballgame, description= "please enter a value or 'all' to throw your balls", color=maincolor)
+                            await ctx.send(embed=errorembed)
+    except:
+            didntcollectembed = discord.Embed(title=ballgame, description = "please go collect some balls first before throwing", color=maincolor)
+            await ctx.send(embed=didntcollectembed)
+@throw.error
+async def command_name_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        rawResetTime = str(f"{error.retry_after}")
+        floatResetTime = float(rawResetTime) + 0.1
+        roundedResetTime = round(floatResetTime, 2)
+        formattedResetTime = str(roundedResetTime)
+        embedcooldown = discord.Embed(title=ballgame,description=f"this command is on cooldown; try again in " + formattedResetTime  + "s.", color=maincolor)
+        await ctx.send(embed=embedcooldown)
+
+@bot.command()
+async def goat(ctx):
+    await ctx.message.add_reaction("👍")
+    goatEmbed = discord.Embed(title="a team will win regionals tomorrow 🐐", description="we all believe in you guys : )", color=discord.Color(0xC7ECAA))
+    goatEmbed.set_image(url = "https://media.discordapp.net/attachments/842834500177362967/934198015797911603/C2F1AD6E-2467-417E-9C5D-573730F8B1F8.jpg?width=898&height=1197")
+    goatEmbed.set_footer(icon_url = "https://images-ext-1.discordapp.net/external/xGu3qD_MJJuBx59Ii3pCYDOiCZxrlmDqEPQhu4xuNOk/%3Fsize%3D4096%26quality%3Dlossless/https/cdn.discordapp.com/emojis/908474855450640424.webp", text="pushin p forever and ever")
+    while True:
+        winmessage = await ctx.send(embed=goatEmbed)
+        reactions = ['🐐', '🇵']
+        for emoji in reactions: 
+            await winmessage.add_reaction(emoji)
+        await asyncio.sleep(3600)
+
+pagenumber = a
+                l = pages[pagenumber].chars #l is list of all characters on page
+                for b in range(len(pages[pagenumber].chars)):
+                    if l[b]['text']+l[b+1]['text'] == f'{question}.' or l[b]['text']+l[b+1]['text']+l[b+2]['text'] == f'{question}.':
+                        start = b
+                        await ctx.send('found start')
+                        continue
+                    if l[b]['text']+l[b+1]['text'] == f'{str(int(question)+1)}.' or l[b]['text']+l[b+1]['text']+l[b+2]['text'] == f'{str(int(question)+1)}.' or pages[pagenumber+1].chars[b]['text']+pages[pagenumber+1].chars[b+1]['text'] == f'{str(int(question)+1)}.':
+                        await ctx.send(pages[pagenumber+1].chars[b]['text']+pages[pagenumber+1].chars[b+1]['text'])
+                        end = b-1
+                        break
+                    if b >= len(l)-3:
+                        await ctx.send('not found')
+                        return
+                qnum = pages[pagenumber].chars[start]
+                qend = pages[pagenumber].chars[end]
+                qbbox = (qnum['x0']-10, qnum['top']-10, qnum['x1']+453, qend['bottom']+10)
+                break
+
+        q = pages[pagenumber].crop(qbbox).to_image(resolution=250).original
+        
+
+        await ctx.send('**images on the same page:**\n\n')
+        for a in range(len(pages[pagenumber].images)):
+            imagedata = [pages[pagenumber].images[a].get(key) if key in ['x0', 'top', 'x1', 'bottom'] else '' for key in pages[pagenumber].images[a]]
+            bbox = (imagedata[0]-10, imagedata[-3]-10, imagedata[2]+10, imagedata[-2]+10)
+            pictures = pages[pagenumber].crop(bbox).to_image(resolution=250).original
+            with io.BytesIO() as image_binary:
+                pictures.save(image_binary, 'PNG')
+                image_binary.seek(0)
+                await ctx.send(file=discord.File(fp=image_binary, filename='image.png'))
+
+"""if len(message.content.split()) == 2:
+            if message.content.split()[1].isdigit():
+                if 0 < int(message.content.split()[1]) <= 14:
+                    x = int(message.content.split()[1])+1
+                    await message.channel.send(f'you are starting right after the line of `{poem[x-1]}`')
+                else:
+                    await message.channel.send('bad input')
+                    await message.add_reaction('❌')
+                    return
+            elif message.content.split()[1].lower() == 'lb':
+                with open("memorization.txt", "r") as add:
+                    leaderboard = ast.literal_eval(add.read())
+                    people = ''
+                    for a in leaderboard:
+                        people += f'{a}: {leaderboard[a]}\n'
+                    await message.channel.send(f'```{people}```')
+                    return
+            else:
+                await message.channel.send('bad input')
+                await message.add_reaction('❌')
+                return
+        else:
+            x=1
+        await message.add_reaction('✅')
+
+        with open("memorization.txt", "r+") as users:
+            userid = str(message.author.display_name)
+            if userid not in repr(users.read()):
+                users.seek(0)
+                leaderboard = ast.literal_eval(users.read())
+                leaderboard[userid] = 0
+                users.seek(0)
+                users.write(str(leaderboard))
+                users.truncate()"""
+
+
+elif message.content.lower().startswith('usaco'):
+        if message.content.split()[0] != 'usaco' and message.content.split()[0].split('usaco')[1].isdigit():
+            problem = int(message.content.split()[0].split('usaco')[1])
+            await message.add_reaction('<:checkmark:946172382882717707>')  
+            def check(m):
+                return m.author.id == message.author.id and m.channel == message.channel
+            try:
+                await message.channel.send("enter input")
+                userinput = await bot.wait_for('message', check=check, timeout=60)
+            except:
+                await message.channel.send('you took too long : (')
+                return
+
+            if problem == 1:
+                points = 0
+                userinput = userinput.content.split("\n")
+                shells = [1,2,3]
+                for initial in range(int(userinput[0])):
+                    await message.channel.send(userinput)
+                    shells[int(userinput[1][0])-1], shells[int(userinput[1][2])-1] = shells[int(userinput[1][2])-1], shells[int(userinput[1][0])-1]
+                    await message.channel.send(shells)
+                    """
+                    swap the numbers in userinput[1]
+                    check if initial equals guess
+                    count how many times that happens
+                    
+                    
+                    """
+            
+                
+
+
+
+
+
+
+    #await bot.process_commands(message)
+
+@tree.command(name="name", description="description")
+async def slash_command(int: discord.Interaction):    
+    await int.response.send_message("command")
+
+"""@bot.command()
+async def timer(ctx,*,  inputtime=None):
+    if inputtime is not None:
+        inputtime = inputtime.split()
+        embedtimer = discord.Embed(title="timer :alarm_clock:", description = "timer started", color=maincolor)
+        embedtimer.set_footer(text=footer)
+        message = await ctx.send(embed=embedtimer)
+        starttime = time.time()
+        try:
+            if len(inputtime) > 3:
+                await message.edit(embed=discord.Embed(title="timer :alarm_clock:", description = "please enter 'stop' or an amount to set the timer to formatted `h m s`, `m s` or just `s`.", color=maincolor))
+            elif len(inputtime) == 3:
+                seconds = int(inputtime[0])*3600+int(inputtime[1])*60+int(inputtime[2])-0.8
+                timeleft = seconds
+                while timeleft > 0:
+                    lag = time.time()
+                    timeleft = seconds-(time.time()-starttime)
+                    h = timeleft//3600
+                    m = timeleft//60 - h*60
+                    s = timeleft - h*3600 - m*60
+                    await message.edit(embed=discord.Embed(title="timer :alarm_clock:", description = f"time is up <t:{int(int(starttime)+seconds)}:R>\n\n`{int(h)}h {int(m)}m {int(s)}s` remaining", color=maincolor))
+                    await asyncio.sleep(1-(time.time()-lag))
+                await message.edit(embed=discord.Embed(title="timer :alarm_clock:", description = f"time is up, <@!{ctx.message.author.id}>\n\ntimer ended <t:{int(int(starttime)+seconds)}:R>", color=maincolor))
+                pong = await ctx.send(f"<@!{ctx.message.author.id}>")
+                await pong.delete()
+            elif len(inputtime) == 2:
+                seconds = int(inputtime[0])*60+int(inputtime[1])-0.8
+                timeleft = seconds
+                while timeleft > 0:
+                    lag = time.time()
+                    timeleft = seconds-(time.time()-starttime)
+                    m = timeleft//60
+                    s = timeleft - m*60
+                    await message.edit(embed=discord.Embed(title="timer :alarm_clock:", description = f"time is up <t:{int(int(starttime)+seconds)}:R>\n\n`{int(m)}m {int(s)}s` remaining", color=maincolor))
+                    await asyncio.sleep(1-(time.time()-lag))
+                await message.edit(embed=discord.Embed(title="timer :alarm_clock:", description = f"time is up, <@!{ctx.message.author.id}>\n\ntimer ended <t:{int(int(starttime)+seconds)}:R>", color=maincolor))
+                pong = await ctx.send(f"<@!{ctx.message.author.id}>")
+                await pong.delete()
+            elif len(inputtime) == 1:
+                seconds = int(inputtime[0])-0.8
+                timeleft = seconds
+                while timeleft > 0:
+                    lag = time.time()
+                    timeleft = seconds-(time.time()-starttime)
+                    await message.edit(embed=discord.Embed(title="timer :alarm_clock:", description = f"time is up <t:{int(int(starttime)+seconds)}:R>\n\n`{int(timeleft)}s` remaining", color=maincolor))
+                    await asyncio.sleep(1-(time.time()-lag))
+                await message.edit(embed=discord.Embed(title="timer :alarm_clock:", description = f"time is up, <@!{ctx.message.author.id}>\n\ntimer ended <t:{int(int(starttime)+seconds)}:R>", color=maincolor))
+                pong = await ctx.send(f"<@!{ctx.message.author.id}>")
+                await pong.delete()
+        except:
+            await message.edit(embed=discord.Embed(title="timer :alarm_clock:", description = "please enter 'stop' or an amount to set the timer to formatted [hh] [mm] [ss] or just total seconds", color=maincolor))
+
+    else:
+        embederror = discord.Embed(title="timer :alarm_clock:", description = "please enter 'stop' or an amount to set the timer to formatted [hh] [mm] [ss] or just total seconds", color=maincolor)
+        await ctx.send(embed=embederror)
+
+@bot.command()
+async def ping(ctx, server=None):
+    if server == None:
+        await ctx.send(f"pong! {round(bot.latency * 1000)}ms")
+    else:
+        try:
+            msg = await ctx.send(embed=discord.Embed(title=f"<:pingpong:969102287324737546>   pinging server...", color=maincolor))
+            times = subprocess.check_output(["ping", "-c", "5", server]).decode().strip().split()[-2].split("/")
+            ip = subprocess.check_output(["ping", "-c", "5", server]).decode().strip().split()[9].replace(":", "")
+            if ip == server:
+                ip = ""
+            else:
+                ip = " (" + ip + ")"
+            await msg.edit(embed=discord.Embed(title=f"<:pingpong:969102287324737546>   ping results of `{server}{ip}`", description=f"min: `{times[0]}`\navg: `{times[1]}`\nmax: `{times[2]}`", color=maincolor))
+
+        except Exception as a:
+            await msg.edit(embed=discord.Embed(title=f"<:pingpong:969102287324737546>   ping results of `{server}`", description=f"something went wrong\n```{a}```", color=maincolor))
+
+@bot.command()
+async def stupidputin(ctx):
+    await ctx.send('https://norussian.tk/ go there to stop stupidputin (i assume no responsibility if anything happens to u when clicky)')
+
+@bot.command(aliases=['def', 'definition'])
+async def define(ctx, arg=None):
+    if arg != None:
+        await ctx.send(f'https://en.wikipedia.org/wiki/{arg}')
+    else:
+        await ctx.send('missing argument')
+
+
+@bot.command(aliases=['bim', 'ans', 'ma', 'mathans'])
+async def mathanswer(ctx, *, lesson):
+    if 2 < len(lesson.split()) < 5:
+        chapters = lesson.split()
+        if len(chapters[0]) < 2: 
+            chapters[0] = "0" + chapters[0]
+        if len(chapters[1]) < 2:
+            chapters[1] = "0" + chapters[1]
+        if len(chapters[2]) < 3:
+            chapters[2] = "0"*(3-(len(chapters[2]))) + chapters[2]
+        book = "alg2"
+        if len(lesson.split()) == 4:
+            book = chapters[3]
+
+        response = requests.get(f'https://static.bigideasmath.com/protected/content/dc_cc_hs/apt/images/{book}/{chapters[0]}/{chapters[1]}/s_{book}_ex_{chapters[0]}_{chapters[1]}_{chapters[2]}.png', timeout = 10, headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36 Edg/98.0.1108.43'})
+        try:
+            img = Image.open(BytesIO(response.content))
+        except Exception as a:
+            await ctx.send(f'```what you entered probably doesnt exist : (```')
+            return
+        img_w, img_h = img.size
+        img = img.convert('RGBA')
+        background = Image.new(mode = 'RGBA', size=(img_w+25, img_h+25), color=(255, 255, 255, 255))
+        paddedbackground = background.copy()
+        background.paste(img, mask=img)
+        bg_w, bg_h = background.size
+        offset = ((bg_w - img_w) // 2, (bg_h - img_h) // 2)
+        paddedbackground.paste(background, offset)
+        with io.BytesIO() as image_binary:
+            paddedbackground.save(image_binary, 'PNG')
+            image_binary.seek(0)
+            await ctx.send(file=discord.File(fp=image_binary, filename='image.png'))
+    else:
+        await ctx.send(embed=discord.Embed(description = "please format the answer you need as shown: `chapter lesson problem book(alg2 if blank)`", color=maincolor))
+
+#@bot.command()
+#async def q(ctx, question):
+    
+@bot.command()
+async def t(ctx, *, arg=None):
+    if arg != None:
+        if len(arg) <= 100 or ctx.author.id in [532373646543683584,284091178767613952]:
+            if '>' not in arg:
+                await ctx.send(embed=discord.Embed(title="noob's Translator", description=ast.literal_eval(requests.post(url='https://api-free.deepl.com/v2/translate',data = {'target_lang':'EN','auth_key':'57d95539-5eec-dc5c-285f-d2b0c376688f:fx','text': arg}).text)['translations'][0]['text'], color=maincolor))
+                #with open('translations.txt', 'r+') as tracker:
+            else:
+                if arg.count('>') == 1:
+                    if len(arg.split('>')[1].split()) == 0:
+                        await ctx.send('specify language please')
+                    else:
+                        try:
+                            await ctx.send(embed=discord.Embed(title="noob's Translator", description=ast.literal_eval(requests.post(url='https://api-free.deepl.com/v2/translate',data = {'target_lang':arg.split('>')[1].split()[0],'auth_key':'57d95539-5eec-dc5c-285f-d2b0c376688f:fx','text': arg.split('>')[0]}).text)['translations'][0]['text'], color=maincolor))
+                        except Exception as a:
+                            await ctx.send(embed=discord.Embed(title="noob's Translator", description=f"didn't work idk why : (, error Msg is ```{a}```\nproper syntax is ```nub.t [translation] > [language] (language must be 2 letters)```\nvalid languages are ```bg, cs, da, de, el, en, es, et, fi, fr, hu, it, ja, lt, lv, nl, pl, pt, ro, ru, sk, sl, sv, zh```\n ping <@!532373646543683584> if This doesnt solve your issue ig",color=maincolor))
+                else:
+                    await ctx.send('Issac i see U dont u even Try')
+        else:
+            await ctx.send('no more than 100 characters at a time Please')
+    else:
+        await ctx.send('what to translate?')
+
+   
+    elif message.content == 'test':
+        await message.channel.send('hi')
+        channel = bot.get_all_members(532373646543683584)
+        await message.channel.send()
+
+    elif message.content == 'animelistpls':
+        await message.channel.send('```kwms\ndemon slayer\nchu2koi\njojo\nijiranaide, nagatoro-san\naot\n5cm\ntoilet-bound hanako-kun\nbnha4\nshokugeki no soma\ndororo\nsa\ndragon ball\nkanokari\nhxh\ndeath parade\nactv\nngnl\nbmg\nakakill\ntokyo ghoul\ndanmachi\nparasyte\nkonosuba\nre:zero\nfma\nterror in tokyo\nfire force\nkimiuso\nweathering with you\nkon\ntpn\nsilent voice\nyour name\nTHERE ARE SO MANY AAAAA```')
+            
+    elif message.content == 'pingme':
+        await message.channel.send('now mass pinging you\n\nplease type `stop ping` to stop, type it in between pings to work, if something goes wrong please ping me')
+        def check(m):
+            return m.author.id == message.author.id and m.channel == message.channel
+
+        while True:
+            try:
+                msg = await bot.wait_for('message', check=check,timeout=1.1)
+                if msg.content == 'stop ping':
+                    await message.channel.send('pinging stopped')
+                    break
+            except:
+                await message.author.send(f'<@{message.author.id}>')
+
+
+
+        
+
+@bot.command()
+async def wordle(ctx, day=None):
+    if day != None and day.isnumeric():
+        day = int(day)+3
+        if  0 <= day < 2310:
+            await ctx.send(["cigar","rebut","sissy","humph","awake","blush","focal","evade","naval","serve","heath","dwarf","model","karma","stink","grade","quiet","bench","abate","feign","major","death","fresh","crust","stool","colon","abase","marry","react","batty","pride","floss","helix","croak","staff","paper","unfed","whelp","trawl","outdo","adobe","crazy","sower","repay","digit","crate","cluck","spike","mimic","pound","maxim","linen","unmet","flesh","booby","forth","first","stand","belly","ivory","seedy","print","yearn","drain","bribe","stout","panel","crass","flume","offal","agree","error","swirl","argue","bleed","delta","flick","totem","wooer","front","shrub","parry","biome","lapel","start","greet","goner","golem","lusty","loopy","round","audit","lying","gamma","labor","islet","civic","forge","corny","moult","basic","salad","agate","spicy","spray","essay","fjord","spend","kebab","guild","aback","motor","alone","hatch","hyper","thumb","dowry","ought","belch","dutch","pilot","tweed","comet","jaunt","enema","steed","abyss","growl","fling","dozen","boozy","erode","world","gouge","click","briar","great","altar","pulpy","blurt","coast","duchy","groin","fixer","group","rogue","badly","smart","pithy","gaudy","chill","heron","vodka","finer","surer","radio","rouge","perch","retch","wrote","clock","tilde","store","prove","bring","solve","cheat","grime","exult","usher","epoch","triad","break","rhino","viral","conic","masse","sonic","vital","trace","using","peach","champ","baton","brake","pluck","craze","gripe","weary","picky","acute","ferry","aside","tapir","troll","unify","rebus","boost","truss","siege","tiger","banal","slump","crank","gorge","query","drink","favor","abbey","tangy","panic","solar","shire","proxy","point","robot","prick","wince","crimp","knoll","sugar","whack","mount","perky","could","wrung","light","those","moist","shard","pleat","aloft","skill","elder","frame","humor","pause","ulcer","ultra","robin","cynic","aroma","caulk","shake","dodge","swill","tacit","other","thorn","trove","bloke","vivid","spill","chant","choke","rupee","nasty","mourn","ahead","brine","cloth","hoard","sweet","month","lapse","watch","today","focus","smelt","tease","cater","movie","saute","allow","renew","their","slosh","purge","chest","depot","epoxy","nymph","found","shall","harry","stove","lowly","snout","trope","fewer","shawl","natal","comma","foray","scare","stair","black","squad","royal","chunk","mince","shame","cheek","ample","flair","foyer","cargo","oxide","plant","olive","inert","askew","heist","shown","zesty","hasty","trash","fella","larva","forgo","story","hairy","train","homer","badge","midst","canny","fetus","butch","farce","slung","tipsy","metal","yield","delve","being","scour","glass","gamer","scrap","money","hinge","album","vouch","asset","tiara","crept","bayou","atoll","manor","creak","showy","phase","froth","depth","gloom","flood","trait","girth","piety","payer","goose","float","donor","atone","primo","apron","blown","cacao","loser","input","gloat","awful","brink","smite","beady","rusty","retro","droll","gawky","hutch","pinto","gaily","egret","lilac","sever","field","fluff","hydro","flack","agape","voice","stead","stalk","berth","madam","night","bland","liver","wedge","augur","roomy","wacky","flock","angry","bobby","trite","aphid","tryst","midge","power","elope","cinch","motto","stomp","upset","bluff","cramp","quart","coyly","youth","rhyme","buggy","alien","smear","unfit","patty","cling","glean","label","hunky","khaki","poker","gruel","twice","twang","shrug","treat","unlit","waste","merit","woven","octal","needy","clown","widow","irony","ruder","gauze","chief","onset","prize","fungi","charm","gully","inter","whoop","taunt","leery","class","theme","lofty","tibia","booze","alpha","thyme","eclat","doubt","parer","chute","stick","trice","alike","sooth","recap","saint","liege","glory","grate","admit","brisk","soggy","usurp","scald","scorn","leave","twine","sting","bough","marsh","sloth","dandy","vigor","howdy","enjoy","valid","ionic","equal","unset","floor","catch","spade","stein","exist","quirk","denim","grove","spiel","mummy","fault","foggy","flout","carry","sneak","libel","waltz","aptly","piney","inept","aloud","photo","dream","stale","vomit","ombre","fanny","unite","snarl","baker","there","glyph","pooch","hippy","spell","folly","louse","gulch","vault","godly","threw","fleet","grave","inane","shock","crave","spite","valve","skimp","claim","rainy","musty","pique","daddy","quasi","arise","aging","valet","opium","avert","stuck","recut","mulch","genre","plume","rifle","count","incur","total","wrest","mocha","deter","study","lover","safer","rivet","funny","smoke","mound","undue","sedan","pagan","swine","guile","gusty","equip","tough","canoe","chaos","covet","human","udder","lunch","blast","stray","manga","melee","lefty","quick","paste","given","octet","risen","groan","leaky","grind","carve","loose","sadly","spilt","apple","slack","honey","final","sheen","eerie","minty","slick","derby","wharf","spelt","coach","erupt","singe","price","spawn","fairy","jiffy","filmy","stack","chose","sleep","ardor","nanny","niece","woozy","handy","grace","ditto","stank","cream","usual","diode","valor","angle","ninja","muddy","chase","reply","prone","spoil","heart","shade","diner","arson","onion","sleet","dowel","couch","palsy","bowel","smile","evoke","creek","lance","eagle","idiot","siren","built","embed","award","dross","annul","goody","frown","patio","laden","humid","elite","lymph","edify","might","reset","visit","gusto","purse","vapor","crock","write","sunny","loath","chaff","slide","queer","venom","stamp","sorry","still","acorn","aping","pushy","tamer","hater","mania","awoke","brawn","swift","exile","birch","lucky","freer","risky","ghost","plier","lunar","winch","snare","nurse","house","borax","nicer","lurch","exalt","about","savvy","toxin","tunic","pried","inlay","chump","lanky","cress","eater","elude","cycle","kitty","boule","moron","tenet","place","lobby","plush","vigil","index","blink","clung","qualm","croup","clink","juicy","stage","decay","nerve","flier","shaft","crook","clean","china","ridge","vowel","gnome","snuck","icing","spiny","rigor","snail","flown","rabid","prose","thank","poppy","budge","fiber","moldy","dowdy","kneel","track","caddy","quell","dumpy","paler","swore","rebar","scuba","splat","flyer","horny","mason","doing","ozone","amply","molar","ovary","beset","queue","cliff","magic","truce","sport","fritz","edict","twirl","verse","llama","eaten","range","whisk","hovel","rehab","macaw","sigma","spout","verve","sushi","dying","fetid","brain","buddy","thump","scion","candy","chord","basin","march","crowd","arbor","gayly","musky","stain","dally","bless","bravo","stung","title","ruler","kiosk","blond","ennui","layer","fluid","tatty","score","cutie","zebra","barge","matey","bluer","aider","shook","river","privy","betel","frisk","bongo","begun","azure","weave","genie","sound","glove","braid","scope","wryly","rover","assay","ocean","bloom","irate","later","woken","silky","wreck","dwelt","slate","smack","solid","amaze","hazel","wrist","jolly","globe","flint","rouse","civil","vista","relax","cover","alive","beech","jetty","bliss","vocal","often","dolly","eight","joker","since","event","ensue","shunt","diver","poser","worst","sweep","alley","creed","anime","leafy","bosom","dunce","stare","pudgy","waive","choir","stood","spoke","outgo","delay","bilge","ideal","clasp","seize","hotly","laugh","sieve","block","meant","grape","noose","hardy","shied","drawl","daisy","putty","strut","burnt","tulip","crick","idyll","vixen","furor","geeky","cough","naive","shoal","stork","bathe","aunty","check","prime","brass","outer","furry","razor","elect","evict","imply","demur","quota","haven","cavil","swear","crump","dough","gavel","wagon","salon","nudge","harem","pitch","sworn","pupil","excel","stony","cabin","unzip","queen","trout","polyp","earth","storm","until","taper","enter","child","adopt","minor","fatty","husky","brave","filet","slime","glint","tread","steal","regal","guest","every","murky","share","spore","hoist","buxom","inner","otter","dimly","level","sumac","donut","stilt","arena","sheet","scrub","fancy","slimy","pearl","silly","porch","dingo","sepia","amble","shady","bread","friar","reign","dairy","quill","cross","brood","tuber","shear","posit","blank","villa","shank","piggy","freak","which","among","fecal","shell","would","algae","large","rabbi","agony","amuse","bushy","copse","swoon","knife","pouch","ascot","plane","crown","urban","snide","relay","abide","viola","rajah","straw","dilly","crash","amass","third","trick","tutor","woody","blurb","grief","disco","where","sassy","beach","sauna","comic","clued","creep","caste","graze","snuff","frock","gonad","drunk","prong","lurid","steel","halve","buyer","vinyl","utile","smell","adage","worry","tasty","local","trade","finch","ashen","modal","gaunt","clove","enact","adorn","roast","speck","sheik","missy","grunt","snoop","party","touch","mafia","emcee","array","south","vapid","jelly","skulk","angst","tubal","lower","crest","sweat","cyber","adore","tardy","swami","notch","groom","roach","hitch","young","align","ready","frond","strap","puree","realm","venue","swarm","offer","seven","dryer","diary","dryly","drank","acrid","heady","theta","junto","pixie","quoth","bonus","shalt","penne","amend","datum","build","piano","shelf","lodge","suing","rearm","coral","ramen","worth","psalm","infer","overt","mayor","ovoid","glide","usage","poise","randy","chuck","prank","fishy","tooth","ether","drove","idler","swath","stint","while","begat","apply","slang","tarot","radar","credo","aware","canon","shift","timer","bylaw","serum","three","steak","iliac","shirk","blunt","puppy","penal","joist","bunny","shape","beget","wheel","adept","stunt","stole","topaz","chore","fluke","afoot","bloat","bully","dense","caper","sneer","boxer","jumbo","lunge","space","avail","short","slurp","loyal","flirt","pizza","conch","tempo","droop","plate","bible","plunk","afoul","savoy","steep","agile","stake","dwell","knave","beard","arose",
+            "motif","smash","broil","glare","shove","baggy","mammy","swamp","along","rugby","wager","quack","squat","snaky","debit","mange","skate","ninth","joust","tramp","spurn","medal","micro","rebel","flank","learn","nadir","maple","comfy","remit","gruff","ester","least","mogul","fetch","cause","oaken","aglow","meaty","gaffe","shyly","racer","prowl","thief","stern","poesy","rocky","tweet","waist","spire","grope","havoc","patsy","truly","forty","deity","uncle","swish","giver","preen","bevel","lemur","draft","slope","annoy","lingo","bleak","ditty","curly","cedar","dirge","grown","horde","drool","shuck","crypt","cumin","stock","gravy","locus","wider","breed","quite","chafe","cache","blimp","deign","fiend","logic","cheap","elide","rigid","false","renal","pence","rowdy","shoot","blaze","envoy","posse","brief","never","abort","mouse","mucky","sulky","fiery","media","trunk","yeast","clear","skunk","scalp","bitty","cider","koala","duvet","segue","creme","super","grill","after","owner","ember","reach","nobly","empty","speed","gipsy","recur","smock","dread","merge","burst","kappa","amity","shaky","hover","carol","snort","synod","faint","haunt","flour","chair","detox","shrew","tense","plied","quark","burly","novel","waxen","stoic","jerky","blitz","beefy","lyric","hussy","towel","quilt","below","bingo","wispy","brash","scone","toast","easel","saucy","value","spice","honor","route","sharp","bawdy","radii","skull","phony","issue","lager","swell","urine","gassy","trial","flora","upper","latch","wight","brick","retry","holly","decal","grass","shack","dogma","mover","defer","sober","optic","crier","vying","nomad","flute","hippo","shark","drier","obese","bugle","tawny","chalk","feast","ruddy","pedal","scarf","cruel","bleat","tidal","slush","semen","windy","dusty","sally","igloo","nerdy","jewel","shone","whale","hymen","abuse","fugue","elbow","crumb","pansy","welsh","syrup","terse","suave","gamut","swung","drake","freed","afire","shirt","grout","oddly","tithe","plaid","dummy","broom","blind","torch","enemy","again","tying","pesky","alter","gazer","noble","ethos","bride","extol","decor","hobby","beast","idiom","utter","these","sixth","alarm","erase","elegy","spunk","piper","scaly","scold","hefty","chick","sooty","canal","whiny","slash","quake","joint","swept","prude","heavy","wield","femme","lasso","maize","shale","screw","spree","smoky","whiff","scent","glade","spent","prism","stoke","riper","orbit","cocoa","guilt","humus","shush","table","smirk","wrong","noisy","alert","shiny","elate","resin","whole","hunch","pixel","polar","hotel","sword","cleat","mango","rumba","puffy","filly","billy","leash","clout","dance","ovate","facet","chili","paint","liner","curio","salty","audio","snake","fable","cloak","navel","spurt","pesto","balmy","flash","unwed","early","churn","weedy","stump","lease","witty","wimpy","spoof","saner","blend","salsa","thick","warty","manic","blare","squib","spoon","probe","crepe","knack","force","debut","order","haste","teeth","agent","widen","icily","slice","ingot","clash","juror","blood","abode","throw","unity","pivot","slept","troop","spare","sewer","parse","morph","cacti","tacky","spool","demon","moody","annex","begin","fuzzy","patch","water","lumpy","admin","omega","limit","tabby","macho","aisle","skiff","basis","plank","verge","botch","crawl","lousy","slain","cubic","raise","wrack","guide","foist","cameo","under","actor","revue","fraud","harpy","scoop","climb","refer","olden","clerk","debar","tally","ethic","cairn","tulle","ghoul","hilly","crude","apart","scale","older","plain","sperm","briny","abbot","rerun","quest","crisp","bound","befit","drawn","suite","itchy","cheer","bagel","guess","broad","axiom","chard","caput","leant","harsh","curse","proud","swing","opine","taste","lupus","gumbo","miner","green","chasm","lipid","topic","armor","brush","crane","mural","abled","habit","bossy","maker","dusky","dizzy","lithe","brook","jazzy","fifty","sense","giant","surly","legal","fatal","flunk","began","prune","small","slant","scoff","torus","ninny","covey","viper","taken","moral","vogue","owing","token","entry","booth","voter","chide","elfin","ebony","neigh","minim","melon","kneed","decoy","voila","ankle","arrow","mushy","tribe","cease","eager","birth","graph","odder","terra","weird","tried","clack","color","rough","weigh","uncut","ladle","strip","craft","minus","dicey","titan","lucid","vicar","dress","ditch","gypsy","pasta","taffy","flame","swoop","aloof","sight","broke","teary","chart","sixty","wordy","sheer","leper","nosey","bulge","savor","clamp","funky","foamy","toxic","brand","plumb","dingy","butte","drill","tripe","bicep","tenor","krill","worse","drama","hyena","think","ratio","cobra","basil","scrum","bused","phone","court","camel","proof","heard","angel","petal","pouty","throb","maybe","fetal","sprig","spine","shout","cadet","macro","dodgy","satyr","rarer","binge","trend","nutty","leapt","amiss","split","myrrh","width","sonar","tower","baron","fever","waver","spark","belie","sloop","expel","smote","baler","above","north","wafer","scant","frill","awash","snack","scowl","frail","drift","limbo","fence","motel","ounce","wreak","revel","talon","prior","knelt","cello","flake","debug","anode","crime","salve","scout","imbue","pinky","stave","vague","chock","fight","video","stone","teach","cleft","frost","prawn","booty","twist","apnea","stiff","plaza","ledge","tweak","board","grant","medic","bacon","cable","brawl","slunk","raspy","forum","drone","women","mucus","boast","toddy","coven","tumor","truer","wrath","stall","steam","axial","purer","daily","trail","niche","mealy","juice","nylon","plump","merry","flail","papal","wheat","berry","cower","erect","brute","leggy","snipe","sinew","skier","penny","jumpy","rally","umbra","scary","modem","gross","avian","greed","satin","tonic","parka","sniff","livid","stark","trump","giddy","reuse","taboo","avoid","quote","devil","liken","gloss","gayer","beret","noise","gland","dealt","sling","rumor","opera","thigh","tonga","flare","wound","white","bulky","etude","horse","circa","paddy","inbox","fizzy","grain","exert","surge","gleam","belle","salvo","crush","fruit","sappy","taker","tract","ovine","spiky","frank","reedy","filth","spasm","heave","mambo","right","clank","trust","lumen","borne","spook","sauce","amber","lathe","carat","corer","dirty","slyly","affix","alloy","taint","sheep","kinky","wooly","mauve","flung","yacht","fried","quail","brunt","grimy","curvy","cagey","rinse","deuce","state","grasp","milky","bison","graft","sandy","baste","flask","hedge","girly","swash","boney","coupe","endow","abhor","welch","blade","tight","geese","miser","mirth","cloud","cabal","leech","close","tenth","pecan","droit","grail","clone","guise","ralph","tango","biddy","smith","mower","payee","serif","drape","fifth","spank","glaze","allot","truck","kayak","virus","testy","tepee","fully","zonal","metro","curry","grand","banjo","axion","bezel","occur","chain","nasal","gooey","filer","brace","allay","pubic","raven","plead","gnash","flaky","munch","dully","eking","thing","slink","hurry","theft","shorn","pygmy","ranch","wring","lemon","shore","mamma","froze","newer","style","moose","antic","drown","vegan","chess","guppy","union","lever","lorry","image","cabby","druid","exact","truth","dopey","spear","cried","chime","crony","stunk","timid","batch","gauge","rotor","crack","curve","latte","witch","bunch","repel","anvil","soapy","meter","broth","madly","dried","scene","known","magma","roost","woman","thong","punch","pasty","downy","knead","whirl","rapid","clang","anger","drive","goofy","email","music","stuff","bleep","rider","mecca","folio","setup","verso","quash","fauna","gummy","happy","newly","fussy","relic","guava","ratty","fudge","femur","chirp","forte","alibi","whine","petty","golly","plait","fleck","felon","gourd","brown","thrum","ficus","stash","decry","wiser","junta","visor","daunt","scree","impel","await","press","whose","turbo","stoop","speak","mangy","eying","inlet","crone","pulse","mossy","staid","hence","pinch","teddy","sully","snore","ripen","snowy","attic","going","leach","mouth","hound","clump","tonal","bigot","peril","piece","blame","haute","spied","undid","intro","basal","shine","gecko","rodeo","guard","steer","loamy","scamp","scram","manly","hello","vaunt","organ","feral","knock","extra","condo","adapt","willy","polka","rayon","skirt","faith","torso","match","mercy","tepid","sleek","riser","twixt","peace","flush","catty","login","eject","roger","rival","untie","refit","aorta","adult","judge","rower","artsy","rural","shave"][int(day)])
+        else:
+            await ctx.send('bad input')
+    else:
+        await ctx.send('enter day number please')
+
+
+@bot.command()
+async def serverlist(ctx):
+    activeservers = bot.guilds
+    elements = ""
+    for guild in activeservers:
+        if '`' in str(guild):
+            guild = "issac's noob server"
+        elements += f"{str(guild)}\n"
+        
+    await ctx.send(f"```{elements}\ntotal: {len(activeservers)}```")
+
+@bot.command()
+async def stream(ctx, start=None):
+    if start is not None:
+        try:
+            str(None)
+            if start == "start":
+                await bot.change_presence(
+                activity=discord.Streaming(name="notanoob's epic mc world",
+                url="https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
+            elif start == "stop":
+                await bot.change_presence(status=discord.Status.idle, activity=discord.Game(name="with notanoob"))
+        except:
+            embednotstr = discord.Embed(description = "please enter start or stop", color=maincolor)
+            await ctx.send(embed=embednotstr)
+    else:
+        embednotstr = discord.Embed(description = "please enter start or stop", color=maincolor)
+        await ctx.send(embed=embednotstr)
+
+@bot.command()
+async def invite(ctx):
+    await ctx.send("invite link is https://discord.com/oauth2/authorize?client_id=803692977926307850&scope=bot&permissions=8")
+
+@bot.command(pass_context=True)
+async def removerole(ctx, user: discord.Member, role: discord.Role):
+    await user.remove_roles(role)
+
+@bot.command(pass_context=True)
+#@commands.has_role("Admin")
+async def addrole(ctx, user: discord.Member, role: discord.Role):
+    await user.add_roles(role)
+
+#i want to replace with an "adopt noob" command : )
+
+'''message = await ctx.send(embed=sureembed, components = [[Button(label = "yes", custom_id = "button1", style=3, disabled=maybe), Button(label= "no", custom_id = "button2", style=4, disabled=maybe)]])
+    async def on_button_click(interaction):
+        
+        if interaction.component.label.startswith("yes"):
+            await interaction.respond(embed=embedreset, ephemeral= False)
+            await message.edit(embed= sureembed, components = [[Button(label = "yes", custom_id = "button1", style=3, disabled=True), Button(label= "no", custom_id = "button2", style=4, disabled=True)]])
+        else:
+            await interaction.respond(embed=embednevermind, ephemeral= False)
+            await message.edit(embed= sureembed, components = [[Button(label = "yes", custom_id = "button1", style=3, disabled=True), Button(label= "no", custom_id = "button2", style=4, disabled=True)]])'''
+
+def simplify(text):
+    try:
+        return(unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode("utf-8"))
+    except:
+        try:
+           return(unicodedata.normalize('NFD', text).encode('ascii', 'ignore').decode("utf-8"))
+        except:
+            return(text)
+
+@bot.command()
+async def support(ctx):
+    await ctx.send('https://discord.com/invite/2DgF4jGw7B')
+
+@bot.command()
+async def noobify(ctx, *, user=None):
+    if user != None:
+        embednoobify = discord.Embed(description = f"{user} is a noob. You already knew that though.", color=maincolor)
+        checker = user
+        if '`' in list(checker):
+            new = list(checker)
+            while '`' in new:
+                new.remove('`')
+
+            if 'bad' in ['good' if a.isalpha() or a.isnumeric() else 'bad' for a in new]:
+                checker = 'ethan'
+        
+        if "".join(simplify("".join(['o' if a in ['0','🇴','°','(','𝟶','𐩒','⭕','⭗', 'Ф','🅞'] else 'a' if a in ['@','🇦','4','🅰', 'Д','д','v','🅐'] else '' if a in ['*','`','.','/','\\',')','"',"'", '️', '~', '_','›','‹','ⷡ','ⷮ'] else 't' if a in ['🇹','Г', 'Ґ', 'Ҭ','l','🅣','ᴛ','|','l'] else 'n' if a in ['🇳','И', 'Ѝ', 'Й','🅝'] else 'b' if a in ['🇧','🅱','Б', 'Ъ', 'Ь','🅑','в'] else a for a in list(checker)])).split()).lower().count('notanoob') != 0 or "".join(simplify("".join(['a' if a in ['@','🇦','4','🅰','Д', 'д','v','🅐'] else '' if a in ['*','`','.','/','\\',',',"'",'"', '️', '~', '_','›','‹'] else 'e' if a in ['🇪','3','Ԑ', 'Є', 'Э','🅔','Œ','c','C','€'] else 't' if a in ['🇹','Г', 'Ґ', 'Ҭ','🅣','†','l','|'] else 'h' if a in ['🇭','Њ', 'Ҥ', 'Ӊ', 'Ң','-','🅗'] else 'n' if a in ['🇳','И', 'Ѝ', 'Й','🅝'] else a for a in list(checker)])).split()).lower().count('ethan') != 0 or "".join(simplify(checker).split()).count('<@532373646543683584>') !=0:
+            embednoobify = discord.Embed(description = "don't even try to noobify notanoob : )", color=maincolor)
+        
+        await ctx.send(embed=embednoobify)
+    else:
+        await ctx.send(embed=discord.Embed(description='missing argument', color=maincolor))
+
+@bot.command()
+async def say(ctx, *, arg=None):
+    if arg is not None:
+        message = ctx.message
+        try:
+            await message.delete()
+        except:
+            pass
+        newarg = "".join(arg.split())
+        args = list(newarg)
+        if len(args) > 1:
+            if '>' in args and ':' in args and '<' not in args and args[args.index('>')+1] == ':':
+                args[list(args).index('>')] = ('<')
+                arg = "".join(args)
+        await ctx.send(arg)
+        
+    else:
+        await ctx.send("please specify what to say")
+
+@bot.command()
+async def rps(ctx, choice=None):
+    rpsoptions = ['scissors', 'paper', 'rock']
+    botchoice = random.choice(rpsoptions)
+    title = "rock paper scissors"
+
+    if choice == 'rock':
+        if botchoice == 'scissors':
+            rsembed = discord.Embed(title=title, description = "you win, you chose :rock: and the bot chose :scissors:", color=rpscolor)
+            await ctx.send(embed=rsembed)
+        elif botchoice == 'paper':
+            rpembed = discord.Embed(title=title, description = "you lose, you chose :rock: and the bot chose :notepad_spiral:", color=rpscolor)
+            await ctx.send(embed=rpembed)
+        else:
+            rrembed = discord.Embed(title=title, description = "you tie, you and the bot both chose :rock:", color=rpscolor)
+            await ctx.send(embed=rrembed)
+
+    elif choice == 'paper':
+        if botchoice == 'scissors':
+            psembed = discord.Embed(title=title, description = "you lose, you chose :notepad_spiral: and the bot chose :scissors:", color=rpscolor)
+            await ctx.send(embed=psembed)
+        elif botchoice == 'paper':
+            ppembed = discord.Embed(title=title, description = "you tie, you and the bot both chose :notepad_spiral:", color=rpscolor)
+            await ctx.send(embed=ppembed)
+        else:
+            prembed = discord.Embed(title=title, description = "you win, you chose :notepad_spiral: and the bot chose :rock:", color=rpscolor)
+            await ctx.send(embed=prembed)
+
+    elif choice == 'scissors':
+        if botchoice == 'scissors':
+            ssembed = discord.Embed(title=title, description = "you tie, you and the bot both chose :scissors:", color=rpscolor)
+            await ctx.send(embed=ssembed)
+        elif botchoice == 'paper':
+            spembed = discord.Embed(title=title, description = "you win, you chose :scissors: and the bot chose :notepad_spiral:", color=rpscolor)
+            await ctx.send(embed=spembed)
+        else:
+            srembed = discord.Embed(title=title, description = "you lost, you chose :scissors: and the bot chose :rock:", color=rpscolor)
+            await ctx.send(embed=srembed)
+    else:
+        badembed = discord.Embed(title=title, description = "please choose rock, paper, or scissors", color=rpscolor)
+        await ctx.send(embed=badembed)
+
+@bot.command()
+async def delete(ctx, amount=None):
+    try:
+        amount=int(amount)
+        if amount > 0:
+            amount+=1
+            await ctx.channel.purge(limit=amount)
+        else:
+            embedsmh = discord.Embed(description = "please specify an amount of messages greater than 0 to delete", color=maincolor)
+            await ctx.send(embed=embedsmh)
+    except:
+        embederror = discord.Embed(description = "please specify an amount of messages to delete", color=maincolor)
+        await ctx.send(embed=embederror)
+
+@bot.command()
+async def rkeke(ctx):
+    message = ctx.message
+    await message.delete()
+    await ctx.send("Correct! Good job! The image was **rock**.")
+    await ctx.send("https://en.wikipedia.org/wiki/rock")
+
+@bot.command()
+async def bkeke(ctx):
+    message = ctx.message
+    await message.delete()
+    await ctx.send("Correct! Good job! The image was **bird**.")
+
+@bot.command()
+async def test(ctx):
+    msg = ctx.fetch_message(id)
+    #msg = await channel.history(limit=1).flatten()
+    await msg[0].add_reaction('⭐')
+
+@bot.command()
+async def help(ctx, arg=None):
+    if arg is not None:
+        if arg == 'noobify':
+            embednoobify = discord.Embed(title="noobify", description= "this command calls someone a noob.", color=maincolor)
+            embednoobify.add_field(name="usage", value="`nub.noobify [user to noobify]`")
+            embednoobify.set_footer(text=footer)
+            await ctx.send(embed=embednoobify)
+        elif arg == 'say':
+            embedsay = discord.Embed(title="say", description= "this command echos the argument put in.", color=maincolor)
+            embedsay.add_field(name="usage", value="`nub.say [arg]`")
+            embedsay.set_footer(text=footer)
+            await ctx.send(embed=embedsay)
+        elif arg == 'delete':
+            embeddelete = discord.Embed(title="delete", description = "this command deletes messages.", color=maincolor)
+            embeddelete.add_field(name="usage", value="`nub.delete [amount to delete]")
+            embeddelete.set_footer(text=footer)
+            await ctx.send(embed=embeddelete)
+        elif arg == 'rps':
+            embedrps = discord.Embed(title="rock paper scissors", description="play rock paper scissors with bot", color=maincolor)
+            embedrps.add_field(name="usage", value="`nub.rps [rock, paper, or scissors]`")
+            embedrps.set_footer(text=footer)
+            await ctx.send(embed=embedrps)
+        elif arg == 'mathhelp':
+            embedmath = discord.Embed(title="math", description="type an equation into chat and itll be solved; no variables : ( \nplease use `logbase x` or `ln` to format logs : ), also supports ans, ex: `ans+1`", color=maincolor)
+            embedmath.set_footer(text=footer)
+            await ctx.send(embed=embedmath)
+        elif arg == 'mathanswer':
+            embedanswer = discord.Embed(title="math", description="fetch answers from bigideas math, default book is alg2 if book not specified : )", color=maincolor)
+            embedanswer.add_field(name="usage", value="`nub.mathanswer [chapter lesson problem book(alg2 if blank)]`")
+            embedanswer.set_footer(text=footer)
+            await ctx.send(embed=embedanswer)
+        else:
+            embedbad = discord.Embed(title=helpmenu, description= "that is not a valid command, please try again.\n\nsome cmds like rkeke dont exist cuz i lasy msg : )", color=maincolor)
+            embedbad.set_footer(text=footer)
+            await ctx.send(embed=embedbad)
+    else:
+        embedmain = discord.Embed(title=helpmenu, description= "this menu lists the various commands of noob's bot. please use `nub.help [command]` for more information about each command.", color=maincolor)
+        embedmain.add_field(name="ball game commands", value="`no exist anymore cuz useless msg`", inline=False)
+        embedmain.add_field(name="fun", value="`noobify`, `say`, `stream`,`rps`, `rkeke`, `bkeke`", inline=False)
+        #embedmain.add_field(name="moderation", value="``", inline=False) this is secret : )
+        embedmain.add_field(name="useful", value="`ping`, `timer`, `invite`, `serverlist`", inline=False)
+        embedmain.add_field(name="math", value="`mathhelp`, `mathanswer`")
+        embedmain.set_footer(text=footer)
+        await ctx.send(embed=embedmain)"""
+
+
+        # documentAssembler = DocumentAssembler() \
+        # .setInputCol("text") \
+        # .setOutputCol("document")
+
+        # sentenceDetector = SentenceDetectorDLModel.pretrained("sentence_detector_dl", "xx")\
+        #     .setInputCols(["document"])\
+        #     .setOutputCol("sentence")
+
+        # tokenizer = Tokenizer() \
+        #     .setInputCols("sentence") \
+        #     .setOutputCol("token")
+
+        # tokenClassifier = BertForTokenClassification.pretrained("bert_pos_bert_base_german_upos","de") \
+        #     .setInputCols(["sentence", "token"]) \
+        #     .setOutputCol("pos")
+
+        # pipeline = Pipeline(stages=[documentAssembler, sentenceDetector, tokenizer, tokenClassifier])
+
+        # data = spark.createDataFrame([[f"{filteredmsg}"]]).toDF("text")
+
+        # result = pipeline.fit(data).transform(data)
+        # articles = 0
+        # print(result)
+        # print(data)

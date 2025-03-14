@@ -1,0 +1,14 @@
+aiohttp==3.11.11
+deepl==1.21.0
+discord.py==2.4.0
+google_translate_py==1.0.0
+matplotlib==3.10.0
+numpy==2.2.2
+pdfplumber==0.11.5
+Pillow==11.1.0
+python-dotenv==1.0.1
+requests==2.27.1
+seaborn==0.13.2
+simpleeval==1.0.3
+spellchecker==0.4
+wolframalpha==5.1.3
