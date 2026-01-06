@@ -170,7 +170,9 @@ than Clay.', 'Secretary of State Webster is the only member of the cabinet to no
     "de1": [
         ["Auszeichnen", "Einräumen", "Wäre", "benötigen", "Stelle", "geeignet", "Einarbeitung", "umfassende", "Unternehmen", "bezüglich", "Angestellte", "geboten", "Entwicklung", "aufglitten", "angewiesen", "beschleunigte", "bemste", "schaffen", "ahnte", "Abteil"],
         ["to put in", "to grant", "products", "required", "place", "suitable", "training", "comprehensive", "company", "regarding", "employee", "offered", "development", "slid up", "instructed", "accelerated", "decelerated", "to manage", "guessed", "compartment"]
+    ],
+    "de2": [
+        ["sich wenden", "Einsatz", "Vorstand", "Einleben", "Ausrichtung", "Versorgen", "Gelegenheit", "Bedürfnis", "langfristig", "scheitern", "anbieten", "achten", "anständig", "empfinden", "spüren", "entstehen", "Anlass", "klagen", "beitragen", "Bedingung", "davon ausgehen", "nachhaltig", "Beleg", "besitzen", "klauen", "schließlich", "Neid", "_ ist aus _ nicht wegzudenken", "erkundigen", "verwandt", "Auskunft", "Praktikum", "beachten", "Voraussetzung", "benehmen", "Zugang", "Gewalt", "Auseinandersetzung", "im Voraus", "fördern", "Auszeichnung", "unterhalten"],
+        ["turn", "commitment", "board", "settle in", "focus", "provide", "opportunity", "need", "long-term", "fail", "offer", "respect", "decent", "feel", "feel", "emerge", "reason", "complain", "contribute", "condition", "assume", "sustainable", "evidence", "possess", "steal", "eventually", "envy", "is essential to", "ask", "related", "information", "internship", "consider", "requirement", "behave", "access", "violence", "conflict", "in advance", "promote", "award", "entertain"]
     ]
-
-
 }

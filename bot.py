@@ -1,7 +1,7 @@
 import os, random, discord, asyncio, io, requests, subprocess, time, math, unicodedata, ast, pdfplumber, datetime, aiohttp, termios, typing, deepl, wolframalpha, pathlib, textwrap, json, subprocess, selenium, spacy
 import seaborn as sns
 import numpy as np
-import matplotlib as plt
+# import matplotlib.pyplot as plt
 import google.generativeai as genai
 
 from os.path import exists
@@ -24,8 +24,18 @@ from sparknlp.annotator import *
 from sparknlp.pretrained import PretrainedPipeline
 from pyspark.sql import SparkSession
 from bs4 import BeautifulSoup
+from matplotlib import font_manager
+from pathlib import Path
 
-#from discord_components import DiscordComponents, ComponentsBot, Button
+if __name__ == "__main__":
+    from dictcc import Dict
+    dictcc = Dict()
+
+else:
+    from dictcc.dictionaries import Dictionary
+    dict_path = Path.home() / ".dict.cc"
+    dictcc = Dictionary(path=dict_path,reversed=False)
+
 from simpleeval import simple_eval as calc
 from traceback import print_exc
 from PIL import Image
@@ -35,12 +45,13 @@ from discord import app_commands
 from IPython.display import display, Markdown
 # from spellchecker import SpellChecker
 
-# spell = SpellChecker()
+# spellchecker = SpellChecker()
 translator = deepl.Translator("57d95539-5eec-dc5c-285f-d2b0c376688f:fx")
 calculator = wolframalpha.Client('9E39KJ-J79G69HQYK')
 nlp = spacy.load("de_core_news_sm")
 import de_core_news_sm
 nlp = de_core_news_sm.load()
+
 # spark = sparknlp.start(aarch64=True)
 # pipeline = PretrainedPipeline("analyze_sentiment", lang="de")
 
@@ -74,7 +85,20 @@ intents = discord.Intents.all()
 bot = discord.Client(command_prefix='nub.', help_command=None, intents=intents)
 tree = discord.app_commands.CommandTree(bot)
 
-def getcookies():
+def getpath():
+    # try:
+    #     path = "/Users/ethantsai/Library/Mobile Documents/com~apple~CloudDocs/Desktop/bot_py/"
+    #     with open(path+"testme.txt","r") as g:
+    #         g.close()
+    # except:
+    #     try:
+    #         path = "/Users/2happ/Desktop/bot_py/"
+    #     except:
+    #         path = "/home/opc/"
+
+    return "/home/opc/bot_py/"
+
+async def getcookies():
     options = Options()
     options.add_argument("--no-sandbox")
     options.add_argument("--headless")
@@ -85,19 +109,39 @@ def getcookies():
     driver = webdriver.Firefox(options=options,service=service)
     driver.get("https://quillbot.com/de/rechtschreibprufung")
     driver.implicitly_wait(2)
-    required_cookies = ['abIDV2', '_sp_id.48cd', 'premium', 'qdid', 'OptanonConsent', 'AMP_MKTG_6e403e775d', 'qbDeviceID', 'g_state', 'anonID', 'authenticated', 'acceptedPremiumModesTnc', '_sp_ses.48cd', 'connect.sid']
-    cookies = []
-    while len(cookies) < len(required_cookies):
-        cookies = driver.get_cookies()
-        if cookies[-1]['name'] == 'connect.sid':
-            connectsid = cookies[-1]['value']
-            break
+    while driver.get_cookies() == []:
+        await asyncio.sleep(1)
+        print("...")
+    while "connect.sid" not in str(driver.get_cookies()):
+        await asyncio.sleep(1)
+        print(len(driver.get_cookies()))
+
+
+    connectsid = driver.get_cookie("connect.sid")['value']
+    print(connectsid)
+
+    # while len(cookies) < len(required_cookies):
+    #     cookies = driver.get_cookie("connect.sid")
+    #     if cookies != []:
+    #         print(cookies)
+    #         break
+    #     else:
+    #         await asyncio.sleep(1)
+    #         print(".")
+        # try:
+        #     if cookies[-1]['name'] == 'connect.sid':
+        #         connectsid = cookies[-1]['value']
+        #         break
+        #     else:
+        #         print(cookies)
+        #         break
+        # except:
+        #     print(".")
         #cookie_names = [cookie['name'] for cookie in cookies]
-        driver.implicitly_wait(1)
-    
+        # driver.implicitly_wait(1)
     driver.close()
     print(f"returned cookies!! (connectsid = {connectsid})")
-    with open("cookie.txt", "r+") as g:
+    with open(getpath()+"cookie.txt", "r+") as g:
         g.seek(0)
         g.write(connectsid)
         g.truncate()
@@ -133,8 +177,8 @@ def curlcmd(sid, payload):
     -H 'x-website-url: https://quillbot.com/de/rechtschreibprufung' \
     --data-raw '{payload}'"""
 
-def quillbot(content):
-    with open("cookie.txt", "r+") as f:
+async def quillbot(content):
+    with open(getpath()+"cookie.txt", "r+") as f:
         connectsid = f.read()
         f.close()
     payload = json.dumps({
@@ -146,7 +190,7 @@ def quillbot(content):
     }]})
     result = subprocess.run(f"/usr/local/bin/curl_ff98 -k {curlcmd(connectsid,payload)}", capture_output=True,text=True,shell=True)
     if "SESSION_FAILED" in result.stdout:
-        connectsid = getcookies()
+        connectsid = await getcookies()
         result = subprocess.run(f"/usr/local/bin/curl_ff98 -k {curlcmd(connectsid,payload)}", capture_output=True,text=True,shell=True)
         print(result.stdout)
     # print(result.stdout)
@@ -160,18 +204,7 @@ def isfloat(num):
         return(False)
     
         
-def getpath():
-    # try:
-    #     path = "/Users/ethantsai/Library/Mobile Documents/com~apple~CloudDocs/Desktop/bot_py/"
-    #     with open(path+"testme.txt","r") as g:
-    #         g.close()
-    # except:
-    #     try:
-    #         path = "/Users/2happ/Desktop/bot_py/"
-    #     except:
-    #         path = "/home/opc/"
 
-    return "/home/opc/bot_py/"
 
 def storeanswer(ans, txt, id):
     userid = str(id)
@@ -205,20 +238,25 @@ def articles(content):
     ]
     return " ".join(expanded)
 
-def finderrors(msg):
+async def finderrors(msg):
     pronouns = 0
     correctmessage = msg.lower()
-    response = json.loads(quillbot(correctmessage))
+    response = json.loads(await quillbot(correctmessage))
     done = []
     errors = response["data"]["sentences"][0]["contentToReplace"]
+    print(response["data"])
     corrected = response["data"]['sentences'][0]['fixed']
     for error in errors:
         realerror = error["explainers"][0]
+        if error["explainers"][0]["source_word"].lower().replace("ä","a").replace("ö","o").replace("ü","u").replace("ß","ss") == error["explainers"][0]["target_word"].lower().replace("ä","a").replace("ö","o").replace("ü","u").replace("ß","ss"):
+            continue
+        # print(error)
         print(error["explainers"][0]["error_type_id"], error["explainers"][0]["source_word"], error["explainers"][0]["target_word"])
-        if realerror["error_type_id"] in ["REPLACEMENT_ADJECTIVE_FORM","REPLACEMENT_DETERMINER_FORM","REPLACEMENT_ADPOSITION","REPLACEMENT_NOUN_FORM","REPLACEMENT_VERB_FORM"]:
+        if realerror["error_type_id"] in ["REPLACEMENT_ADJECTIVE_FORM","REPLACEMENT_DETERMINER_FORM","REPLACEMENT_ADPOSITION","REPLACEMENT_NOUN_FORM"]:
             done += [(realerror["source_word"],realerror["target_word"])]
             if realerror["error_type_id"] in ["REPLACEMENT_NOUN_FORM","REPLACEMENT_VERB_FORM"]:
-                pronouns += 1
+                if realerror["error_type_id"] == "REPLACEMENT_NOUN_FORM":
+                    pronouns += 1
     print(done)
     return (done, corrected, pronouns)
 
@@ -233,6 +271,41 @@ def countconjs(msg, pronouns):
         if word[1] in ['DET','ADJ']:
             conjugations += 1
     return(conjugations)
+
+def conjtest(msg):
+    # filteredmsg = articles(filt(msg.lower()))
+    # doc = nlp(filteredmsg)
+    doc = nlp(msg)
+    analysis = [(w.text, w.pos_) for w in doc]
+    testnouns = []
+    testadjectives = []
+    testadp = []
+    for i in range(len(analysis)):
+        if analysis[i][1] == ['DET']:
+            if i > 0 and analysis[i-1][1] == ['ADP']:
+                testadp.append(analysis[i-1][0])
+            else:
+                testadp.append("")
+
+            if analysis[i+1][1] == ['ADJ']:
+                temp = []
+                for j in range(i+1, len(analysis)):
+                    if analysis[j][1] == ['ADJ']:
+                        temp.append(analysis[j][0])
+                    else:
+                        testadjectives.append(temp)
+                        testnouns.append(analysis[j][0])
+                        break
+                    
+            elif analysis[i+1][1] == ['NOUN']:
+                testadjectives.append([])
+                testnouns.append(analysis[i][0])
+
+    return(str(testnouns) + "\n" + str(testadjectives) + "\n" + str(analysis) + "\n" + str(testadp))
+
+def getartikel(noun):
+    result = translator.translate(noun, from_language="de", to_language="en")
+    return ["der" if result[0][0].split()[1][1] == "m" else "die" if result[0][0].split()[1][1] == "f" else "das" if result[0][0].split()[1][1] == "n" else "tot" for a in result[0][0].split()[1][1]][0]
 
 def returngrammatiklb(id):
     with open("grammatik.txt", "r+") as f:
@@ -260,12 +333,33 @@ def storegrammatiklb(id, userlb):
         f.truncate()
 
 def checksimilarity(msg, id):
-    allmsgs,totalcorrect,totalconjugations,lastcorrect,lastconjugations,previousfinalscore,finalscore = returngrammatiklb(id)
+    # allmsgs,totalcorrect,totalconjugations,lastcorrect,lastconjugations,previousfinalscore,finalscore = returngrammatiklb(id)
+    id = int(id)
+    with open("/home/opc/bot_py/msgs.txt", "r+") as f:
+        allmsgs = ast.literal_eval(f.read())
+        if id not in allmsgs.keys():
+            allmsgs[id] = []
+
+    # allmsgs = allmsgs[id]
+
     filteredmsg = articles(filt(msg.lower()))
-    if allmsgs == []:
+    if allmsgs[id] == []:
         similarity = [0]
     else:
-        similarity = [nlp(msg).similarity(nlp(filteredmsg)) for msg in allmsgs]             
+        similarity = [nlp(msg).similarity(nlp(filteredmsg)) for _ , a in allmsgs.items() for msg in a]       
+
+    if sorted(similarity, reverse=True)[0] < 0.9:
+        # print(allmsgs)
+        allmsgs[id] = allmsgs[id] + [filteredmsg]
+        # print(allmsgs)
+        with open("/home/opc/bot_py/msgs.txt", "r+") as f:
+            f.seek(0)
+            f.write(str(allmsgs))     
+            f.truncate() 
+
+    else:
+        print(similarity)
+
     return similarity
 
 def calcscore(conjugations, done, msg):
@@ -283,19 +377,19 @@ def calcscore(conjugations, done, msg):
 
     return scoregained
 
-def progress(msg, id, tracking):
+async def progress(msg, id, tracking):
     allmsgs,totalcorrect,totalconjugations,lastcorrect,lastconjugations,previousfinalscore,finalscore = returngrammatiklb(id)
     filteredmsg = articles(filt(msg.lower()))
     similarity = checksimilarity(msg, id)
 
-    done, y, pronouns = finderrors(msg)
+    done, y, pronouns = await finderrors(msg)
     conjugations = countconjs(msg, pronouns)
     scoregained = 0
     msgtosend = ""
 
     if sorted(similarity, reverse=True)[0] < 0.9 and conjugations != 0:
         print("not similar and at least 1 conjugation found!")
-        if len(allmsgs) == 500:
+        if len(allmsgs) == 5000:
             allmsgs = allmsgs[1:]
         allmsgs += [filteredmsg]
         totalcorrect += conjugations-len(done)
@@ -332,6 +426,27 @@ def tracker(lbuser):
     \nscore: ~~{round(previousfinalscore,2)}~~ → **{round(finalscore,2)}**"
     return sendmsg
 
+
+# class textinputs(discord.ui.View):
+#     def __init__(self, *, timeout=30):
+#         super().__init__(timeout=timeout)
+
+
+# class twentyfour(discord.ui.View):
+#     def __init__(self, *, timeout=30):
+#         super().__init__(timeout=timeout)
+#         self.value = None
+
+#     @discord.ui.button(label="submit",style=discord.ButtonStyle.green)
+#     async def submit(self,button:discord.ui.Button,interaction:discord.Interaction):
+#         self.value = True
+        
+
+#     @discord.ui.text_input(label = "input", style=discord.TextStyle.short)
+#     async def text(self,input:discord.ui.TextInput,interaction:discord.Interaction):
+#         return self.str()
+
+
 @bot.event
 async def on_ready():
     await bot.wait_until_ready() # Waits until the bot is ready
@@ -358,6 +473,10 @@ async def on_message(message):
     if message.content.lower() in ['bruh', 'smh']:
         await message.channel.send("<a:RATSEE:995235533603225641>")
 
+    if message.content.lower().startswith("testing"):
+        msg = message.content.lower().split()[1:]
+        await message.channel.send(conjtest(msg))
+
     # async def askgemini(context):
     #     response = await model.generate_content_async(directions)
     #     return response.text
@@ -368,7 +487,7 @@ async def on_message(message):
         #     response = await askgemini(directions)
         # except:
         #     response = "good"
-        done, corrected, pronouns = finderrors(message.content)
+        done, corrected, pronouns = await finderrors(message.content)
         finalmsg = f""
         context = ""
         splitted = message.content.lower().split()
@@ -380,9 +499,12 @@ async def on_message(message):
             if gerror[0] not in seenwords:
                 # if splitted.index(gerror[0]) = splitted.index
                 seenwords[gerror[0]] = 1
-                context = filt(correctedsplit[splitted.index(gerror[0])+1])
-                if context == gerror[1]:
-                    context = filt(correctedsplit[splitted.index(gerror[0])+2])
+                try:
+                    context = filt(correctedsplit[splitted.index(gerror[0])+1])
+                    if context == gerror[1]:
+                        context = filt(correctedsplit[splitted.index(gerror[0])+2])
+                except:
+                    context = ""
             else:
                 context = correctedsplit[[index for index, word in enumerate(splitted) if word == gerror[0]][seenwords[gerror[0]]]+1].replace(".","").replace(",","")
                 seenwords[gerror[0]] += 1
@@ -405,11 +527,10 @@ async def on_message(message):
         # rawscore = f"{conjugations-len(done)}/{conjugations}"
         # score = (conjugations-len(done))/conjugations
         tracking = 20
-        sending = progress(message.content, message.author.id, tracking)
+        sending = await progress(message.content, message.author.id, tracking)
         if sending != "":
             await message.channel.send(embed=discord.Embed(title="Du hast 20 nachrichten konjugiert!", description = sending, color=maincolor))
-        if len(done) == 0 and len(splitted) >= 20 and countconjs(articles(filt(splitted)), pronouns) >= 5:
-            await message.channel.send("verdächtig")
+            # quiz = await message.channel.send(embed=discord.Embed(title="War das fähigkeit?? oder nur gluck??", description = "klicke auf 'start', um den quiz zu beginnen!\nEs gibt 5 frage. Diese probleme sind von deinen letzten nachrichten genommen. Du hast 5 sekunden pro problem. viel gluck!\nwenn du diese prufung nicht nimmst, verlierst du halb von deinem accuracy und punkte!! so nimm die prufung!!", color=maincolor))
     
         # corrected = response["data"]["sentences"][0]["fixed"]
         # formatted = corrected.lower().replace(".", "").replace(",","").replace("ä","a").replace("ö","o").replace("ü","u").replace("ß","ss")
@@ -626,7 +747,8 @@ async def on_message(message):
                 return
             correct = [exception(definitions[0].lower()), exception(definitions[0].lower().replace(" ", ""))]
             await msg.delete()
-            if msg.content.lower() in correct or " ".join([f"{spell.correction(x)}" for x in msg.content.lower().strip().split()]).replace("", "") in correct:
+            # if msg.content.lower() in correct or " ".join([f"{spellchecker.correction(x)}" for x in msg.content.lower().strip().split()]).replace("", "") in correct:
+            if "tot":
                 testcontent = f"{numcorr+1}/{termlen} correct\n\n<:checkmark:946172382882717707> correct"
                 if numcorr == termlen -1:
                     question = ""
@@ -684,7 +806,7 @@ async def on_message(message):
         
         xaxis = np.arange(1, len(testtimes)+1, 1)
         yaxis = np.asarray(testtimes, dtype=float)
-        ax = sns.barplot(x=xaxis, y=yaxis)
+        ax = sns.barplot(x=xaxis, y=yaxis,palette="YlGnBu")
         ax.set(xlabel="test number", ylabel="time spent (s)", ylim=(min(60, min(testtimes)-min(testtimes)%5), max(testtimes)**(1+(1/max(testtimes)))-max(testtimes)**(1+(1/max(testtimes)))%5))
         ax.get_figure().suptitle(f"{testtype} test times")
         ax.get_figure().savefig("image.png")
@@ -878,7 +1000,7 @@ async def say(int: discord.Interaction, text: str):
 async def sync(int:discord.Interaction):
     if int.user.id == 532373646543683584:
         await tree.sync()
-        await int.response.send_message("tree synced!", ephemeral= True)
+        await int.response.send_message("tree  synced!", ephemeral= True)
     else:
         await int.response.send_message("you are not the owner!", ephemeral= True)
 
@@ -909,21 +1031,36 @@ async def stats(int:discord.Interaction):
 @app_commands.allowed_installs(guilds=True, users=True)
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 async def lb(int:discord.Interaction):
-    with open("grammatik.txt", "r") as f:
-        f.seek(0)
+    # with open("grammatik.txt", "r") as f:
+    #     f.seek(0)
+    #     a = ast.literal_eval(f.read())
+    #     ranking = []
+    #     rankings = []
+    #     for user, stats in a.items():
+    #         print(user)
+    #         username = await bot.fetch_user(user)
+    #         ranking += [stats[6]]
+    #         rankings += [f"{username.name}: acc: {stats[1]}/{stats[2]} = **{round(100*stats[1]/max(stats[2],1),2)}%**, score = **{round(stats[6],2)}**, avg = **{round(stats[6]/max(len(stats[0]),1),2)}**, msgs = **{len(stats[0])}**"]
+    #     ranking, rankings = zip(*sorted(zip(ranking, rankings), reverse = True))
+    #     newrankings = list(rankings)
+    #     for i in range(len(newrankings)):
+    #         newrankings[i] = f"#{i+1}: " + newrankings[i]
+    #     msg = "\n".join(newrankings)
+    #     f.close()
+    with open("/home/opc/bot_self/scores.txt", "r") as f:
         a = ast.literal_eval(f.read())
         ranking = []
         rankings = []
         for user, stats in a.items():
+            print(user)
             username = await bot.fetch_user(user)
-            ranking += [stats[6]]
-            rankings += [f"{username.name}: acc: {stats[1]}/{stats[2]} = **{round(100*stats[1]/max(stats[2],1),2)}%**, score = **{round(stats[6],2)}**, avg = **{round(stats[6]/max(len(stats[0]),1),2)}**, msgs = **{len(stats[0])}**"]
+            ranking += [stats["messages"]]
+            rankings += [f'{username.name}: acc: {(stats["correct"]/stats["total"])*100:.2f}%, nachrichten: {stats["messages"]}']
         ranking, rankings = zip(*sorted(zip(ranking, rankings), reverse = True))
         newrankings = list(rankings)
         for i in range(len(newrankings)):
             newrankings[i] = f"#{i+1}: " + newrankings[i]
         msg = "\n".join(newrankings)
-        f.close()
 
     await int.response.send_message(embed=discord.Embed(title="Grammatik leaderboard", description=msg, color=maincolor))
 
@@ -931,13 +1068,13 @@ async def lb(int:discord.Interaction):
 @app_commands.user_install()
 @app_commands.allowed_installs(guilds=True, users=True)
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-async def rollback(int:discord.Interaction, id: int, amount: int):
+async def rollback(int:discord.Interaction, id: str, amount: int):
     if int.user.id == 532373646543683584:
-        userlb = returngrammatiklb(id)
+        userlb = returngrammatiklb(int(id))
         lastmessages = userlb[0][-1*amount:]
         userlb[0] = userlb[0][:-1*amount+1]
         for msg in lastmessages:
-            done, corrected, pronouns = finderrors(msg)
+            done, corrected, pronouns = await finderrors(msg)
             conjs = countconjs(msg, pronouns)
             score = calcscore(conjs, done, msg)
             userlb[1] -= conjs - len(done)
@@ -951,45 +1088,41 @@ async def rollback(int:discord.Interaction, id: int, amount: int):
     else:
         await int.response.send_message("du willst etwas 'rollback', oder? wie ware es, mit dir zuruck zu rollen? zuruck in dein loch zu rollen?")
 
-@tree.command(name="addemoji", description = "add emoji")
+@tree.command(name="artikel", description = "artikel finden")
 @app_commands.user_install()
 @app_commands.allowed_installs(guilds=True, users=True)
-@app_commands.allowed_contexts(guilds=True)
-async def addemoji(int:discord.Interaction, name: str, img: str):
-    html = requests.get(img).content
-    soup = BeautifulSoup(html, 'html.parser')
-    imagetag = soup.find("meta", property="og:image")
-    if imagetag:
-        imageurl = imagetag["content"]
-        imageresponse = requests.get(imageurl)
-        if imageresponse.status_code == 200:
-            with open("image.gif", "wb") as f:
-                f.write(imageresponse.content)
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+async def artikel(int:discord.Interaction,noun:str):
+    result = dictcc.translate(noun, from_language="en", to_language="de")
+    articles = {"{f}": "die", "{m}": "der" , "{n}": "das"}
+    try:
+        await int.response.send_message(articles[result.translation_tuples[0][0].split()[1]] + " " + noun)
+    except:
+        debugerror = ""
+        try:
+            for d in result.translation_tuples:
+                debugerror += (str(d) + "\n")
+                if d[0].startswith(noun.capitalize() + " {"):
+                    await int.response.send_message(articles["{"+d[0][d[0].index("{")+1]+"}"] + " " + noun)
+                    return
+        except:
+            await int.response.send_message(debugerror)
+        await int.response.send_message("nicht gefunden")
 
-        with Image.open("image.gif") as img:
-            frames = []
-            try:
-                while True:
-                    frame = img.copy()
-                    frame = frame.resize((108, 108), Image.Resampling.LANCZOS)
-                    frames.append(frame)
-                    img.seek(len(frames))
-            except EOFError:
-                pass
-            if frames:
-                frames[0].save(
-                    "resized.gif",
-                    save_all=True,
-                    append_images=frames[1:],
-                    loop=0,
-                    duration=img.info['duration']
-                )
-        with open("resized.gif", "rb") as g:
-            gif = g.read()
-    else:
-        await int.response.send_message("image not found")
-    await int.guild.create_custom_emoji(name=name, image=gif)
+@tree.command(name="24",description = "24")
+@app_commands.user_install()
+@app_commands.allowed_installs(guilds=True, users=True)
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+async def twentyfour(int:discord.Interaction):
+    with open("24.txt", "r") as f:
+        eqs = f.readlines()
+        eq = eqs[random.randint(0,len(eq))]
+        nums = ["" for a in list(eq) if a in [")", "(", "*", "/", "+", "-", " "]]
+        soln = ["" for a in list(eq) if a in [")", "(", " "]]
+        f.seek(0)
+        f.close()
 
+    
 """if arg != None:
         if len(arg) <= 100 or ctx.author.id in [532373646543683584,284091178767613952]:
             if '>' not in arg:
@@ -1010,5 +1143,5 @@ async def addemoji(int:discord.Interaction, name: str, img: str):
             await ctx.send('no more than 100 characters at a time Please')
     else:
         await ctx.send('what to translate?')"""
-
-bot.run(TOKEN)
+if __name__ == "__main__":
+    bot.run(TOKEN)
