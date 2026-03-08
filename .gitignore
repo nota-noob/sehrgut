@@ -1,6 +1,7 @@
 .venv
 .env
 __pycache__/
+answers.txt
 cookie.txt
 grammatik.txt
 image.gif
