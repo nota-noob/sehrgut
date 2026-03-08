@@ -1,2 +1,8 @@
 .venv
 .env
+__pycache__/
+cookie.txt
+grammatik.txt
+image.gif
+msgs.txt
+to_ignore/
